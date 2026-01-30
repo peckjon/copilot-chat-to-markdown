@@ -7,9 +7,101 @@ Usage: python chat_to_markdown.py input.json output.md
 
 import json
 import sys
+import os
 import argparse
 from datetime import datetime
 from typing import Dict, List, Any
+
+# Global translations dictionary
+_translations = {}
+_current_language = 'en-US'
+
+def normalize_language_code(language: str, available_languages: List[str], defaults: Dict[str, str]) -> str:
+    """Normalize language code according to BCP 47 with fallback logic."""
+    if not language:
+        return 'en-US'
+    
+    # Normalize case: language code lowercase, region uppercase
+    parts = language.split('-')
+    if len(parts) == 2:
+        normalized = f"{parts[0].lower()}-{parts[1].upper()}"
+    else:
+        normalized = parts[0].lower()
+    
+    # Check for exact match
+    for available in available_languages:
+        if available.lower() == normalized.lower():
+            return available
+    
+    # If only base language provided, use default region
+    if '-' not in normalized:
+        base_lang = normalized
+        if base_lang in defaults:
+            default_locale = defaults[base_lang]
+            if default_locale in available_languages:
+                return default_locale
+    
+    # If specific region not available, find any region for base language
+    if '-' in normalized:
+        base_lang = normalized.split('-')[0]
+        for available in available_languages:
+            if available.lower().startswith(base_lang + '-'):
+                return available
+    
+    # Final fallback to en-US
+    return 'en-US'
+
+def load_translations(language: str = 'en-US') -> bool:
+    """Load translations for the specified language using BCP 47 codes."""
+    global _translations, _current_language
+    
+    try:
+        translations_file = os.path.join(os.path.dirname(__file__) or '.', 'translations.json')
+        with open(translations_file, 'r', encoding='utf-8') as f:
+            all_translations = json.load(f)
+        
+        # Extract defaults and available languages
+        defaults = all_translations.get('_defaults', {})
+        available_languages = [k for k in all_translations.keys() if k != '_defaults']
+        
+        # Normalize the requested language code
+        normalized_language = normalize_language_code(language, available_languages, defaults)
+        
+        if normalized_language not in all_translations:
+            print(f"Warning: Language '{normalized_language}' not found, using en-US", file=sys.stderr)
+            normalized_language = 'en-US'
+        
+        _translations = all_translations[normalized_language]
+        _current_language = normalized_language
+        
+        if language != normalized_language:
+            print(f"Note: Using '{normalized_language}' for requested language '{language}'", file=sys.stderr)
+        
+        return True
+    except FileNotFoundError:
+        print("Warning: translations.json not found, using default English strings", file=sys.stderr)
+        _translations = {}
+        _current_language = 'en-US'
+        return False
+    except Exception as e:
+        print(f"Warning: Error loading translations: {e}, using default English strings", file=sys.stderr)
+        _translations = {}
+        _current_language = 'en-US'
+        return False
+
+def t(key: str, **kwargs) -> str:
+    """Translate a key with optional formatting parameters."""
+    text = _translations.get(key, key)
+    if kwargs:
+        try:
+            return text.format(**kwargs)
+        except (KeyError, ValueError):
+            return text
+    return text
+
+def get_current_language() -> str:
+    """Get the currently active language code."""
+    return _current_language
 
 def extract_text_from_response_part(part: Dict[str, Any]) -> str:
     """Extract text content from a response part, handling different formats."""
