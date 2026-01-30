@@ -1093,12 +1093,23 @@ def main():
         epilog="""
 Examples:
   python chat_to_markdown.py input.json output.md
+  python chat_to_markdown.py --language pt-BR input.json output.md
+  python chat_to_markdown.py -l pt input.json output.md
+
+Supported languages use BCP 47 codes (e.g., en-US, pt-BR).
+Base language codes (en, pt) use default regional variants.
         """
     )
     parser.add_argument('input_file', help='Input JSON file (chat log)')
     parser.add_argument('output_file', help='Output markdown file')
+    parser.add_argument('--language', '-l', default='en-US',
+                        help='Language/locale for output (default: en-US). '
+                             'Examples: en-US, pt-BR')
     
     args = parser.parse_args()
+    
+    # Load translations
+    load_translations(args.language)
     
     try:
         # Read the JSON file
