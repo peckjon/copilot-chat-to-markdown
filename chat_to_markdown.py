@@ -233,7 +233,7 @@ def format_timestamp(timestamp_ms: int) -> str:
         dt = datetime.fromtimestamp(timestamp_s)
         return dt.strftime("%Y-%m-%d %H:%M:%S")
     except (ValueError, TypeError):
-        return "Unknown time"
+        return t('unknown_time')
 
 def format_error_message(error_details: Dict[str, Any]) -> str:
     """Format error details into a markdown error box."""
@@ -297,7 +297,7 @@ def format_references(variables: List[Dict[str, Any]]) -> str:
                 reference_count += 1
     
     # Create details block with correct count
-    summary = f"Used {reference_count} references"
+    summary = t('used_references', count=reference_count)
     content = '<br>'.join(content_lines)
     
     return f"""<details>
@@ -542,11 +542,11 @@ def format_text_edit_group(edit_data: Dict[str, Any]) -> str:
         uri = edit_data.get('uri', {})
         file_path = uri.get('fsPath', '')
         if not file_path:
-            file_path = uri.get('path', 'Unknown file')
+            file_path = uri.get('path', t('unknown_file'))
         
         # Extract just the filename for display
         import os
-        file_name = os.path.basename(file_path) if file_path else 'Unknown file'
+        file_name = os.path.basename(file_path) if file_path else t('unknown_file')
         
         edits = edit_data.get('edits', [])
         if not edits:
@@ -571,7 +571,7 @@ def format_text_edit_group(edit_data: Dict[str, Any]) -> str:
         # Build the details block
         lines = []
         lines.append(f"<details>")
-        lines.append(f"  <summary>🛠️ File Edit: {file_name}</summary>")
+        lines.append(f"  <summary>🛠️ {t('file_edit')}: {file_name}</summary>")
         
         # Determine the language for syntax highlighting
         file_ext = os.path.splitext(file_name)[1] if file_name else ''
@@ -588,9 +588,9 @@ def format_text_edit_group(edit_data: Dict[str, Any]) -> str:
                 end_line = edit_range.get('endLineNumber', '')
                 if start_line and end_line:
                     if start_line == end_line:
-                        lines.append(f"  <p><strong>Modified line {start_line}:</strong></p>")
+                        lines.append(f"  <p><strong>{t('modified_line', line=start_line)}:</strong></p>")
                     else:
-                        lines.append(f"  <p><strong>Modified lines {start_line}-{end_line}:</strong></p>")
+                        lines.append(f"  <p><strong>{t('modified_lines', start=start_line, end=end_line)}:</strong></p>")
                     lines.append(f"")
             
             # Check if content contains triple backticks
@@ -618,9 +618,9 @@ def format_text_edit_group(edit_data: Dict[str, Any]) -> str:
                     end_line = edit_range.get('endLineNumber', '')
                     if start_line and end_line:
                         if start_line == end_line:
-                            lines.append(f"  <p><strong>Line {start_line}:</strong></p>")
+                            lines.append(f"  <p><strong>{t('line')} {start_line}:</strong></p>")
                         else:
-                            lines.append(f"  <p><strong>Lines {start_line}-{end_line}:</strong></p>")
+                            lines.append(f"  <p><strong>{t('lines')} {start_line}-{end_line}:</strong></p>")
                         lines.append(f"")
                 
                 # Check if content contains triple backticks
@@ -636,7 +636,7 @@ def format_text_edit_group(edit_data: Dict[str, Any]) -> str:
         
         # If there are many edits, group them into a single consolidated block
         else:
-            lines.append(f"  <p><strong>Multiple file changes ({len(all_edits)} edits)</strong></p>")
+            lines.append(f"  <p><strong>{t('multiple_file_changes', count=len(all_edits))}</strong></p>")
             lines.append(f"")
             
             # Sort edits by line number for better grouping
@@ -804,7 +804,7 @@ def format_tool_calls(tool_calls: list) -> str:
         if not isinstance(tool_call, dict):
             continue
             
-        name = tool_call.get('name', 'Unknown tool')
+        name = tool_call.get('name', t('unknown_tool'))
         
         # Format the tool call as a compact command
         call_line = f"🔧 **{name}**"
@@ -852,17 +852,17 @@ def parse_chat_log(chat_data: Dict[str, Any]) -> str:
     md_lines = []
     
     # Header
-    md_lines.append("# GitHub Copilot Chat Log")
+    md_lines.append(f"# {t('chat_log_title')}")
     md_lines.append("")
-    md_lines.append(f"**Participant:** {chat_data.get('requesterUsername', 'User')}")
-    md_lines.append(f"<br>**Assistant:** {chat_data.get('responderUsername', 'GitHub Copilot')}")
+    md_lines.append(f"**{t('participant')}:** {chat_data.get('requesterUsername', t('user'))}")
+    md_lines.append(f"<br>**{t('assistant')}:** {chat_data.get('responderUsername', 'GitHub Copilot')}")
     md_lines.append("")
     
     # Generate table of contents
     requests = chat_data.get('requests', [])
     if len(requests) > 1:
         md_lines.append('<a name="table-of-contents"></a>')
-        md_lines.append("## Table of Contents")
+        md_lines.append(f"## {t('table_of_contents')}")
         md_lines.append("")
         for i, request in enumerate(requests, 1):
             # Extract first line of user message for preview
