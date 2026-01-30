@@ -885,9 +885,9 @@ def parse_chat_log(chat_data: Dict[str, Any]) -> str:
                 if len(first_line) > 80:
                     first_line = first_line[:77] + "..."
             else:
-                first_line = "[No message content]"
+                first_line = t('no_message_content')
             
-            md_lines.append(f"- [Request {i}](#request-{i}): {first_line}")
+            md_lines.append(f"- [{t('request')} {i}](#request-{i}): {first_line}")
         
         md_lines.append("")
     
@@ -914,7 +914,7 @@ def parse_chat_log(chat_data: Dict[str, Any]) -> str:
         
         # Add explicit anchor and header with navigation
         md_lines.append(f'<a name="request-{i}"></a>')
-        md_lines.append(f"## Request {i} {' '.join(nav_links)}")
+        md_lines.append(f"## {t('request')} {i} {' '.join(nav_links)}")
         md_lines.append("")
         
         # Extract user message text
@@ -934,7 +934,7 @@ def parse_chat_log(chat_data: Dict[str, Any]) -> str:
                     message_text = ''.join(text_parts)
         
         if message_text:
-            md_lines.append("### Participant")
+            md_lines.append(f"### {t('participant')}")
             md_lines.append("")
             md_lines.append(format_message_text(message_text))
             md_lines.append("")
@@ -950,7 +950,7 @@ def parse_chat_log(chat_data: Dict[str, Any]) -> str:
         
         # Process assistant responses (can have both response content and errors)
         if response or (error_details and isinstance(error_details, dict) and error_details.get('message')):
-            md_lines.append("### Assistant")
+            md_lines.append(f"### {t('assistant')}")
             md_lines.append("")
             
             # Add references if they exist (might be present even with errors)
@@ -1050,7 +1050,7 @@ def parse_chat_log(chat_data: Dict[str, Any]) -> str:
             if 'totalElapsed' in timings:
                 elapsed_ms = timings['totalElapsed']
                 elapsed_s = elapsed_ms / 1000
-                metadata_lines.append(f"> *Response time: {elapsed_s:.2f} seconds*")
+                metadata_lines.append(f"> *{t('response_time')}: {elapsed_s:.2f} {t('seconds')}*")
         
         # Add model information
         model_id = request.get('modelId', '')
@@ -1071,7 +1071,7 @@ def parse_chat_log(chat_data: Dict[str, Any]) -> str:
             
             if model_info_parts:
                 model_info = ' • '.join(model_info_parts)
-                metadata_lines.append(f"> <br>*Model: {model_info}*")
+                metadata_lines.append(f"> <br>*{t('model')}: {model_info}*")
         
         # Add all metadata lines
         if metadata_lines:
