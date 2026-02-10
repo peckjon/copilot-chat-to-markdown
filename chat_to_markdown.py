@@ -994,6 +994,17 @@ def parse_chat_log(chat_data: Dict[str, Any]) -> str:
     
     return '\n'.join(md_lines)
 
+
+def sanitize_surrogates(text: str) -> str:
+    """Replace lone Unicode surrogates (U+D800-U+DFFF) that can't be encoded in UTF-8.
+
+    These can appear when VS Code exports chat containing certain emoji/braille art
+    characters that get serialized as unpaired surrogates in the JSON.
+    """
+    import re
+    return re.sub(r'[\ud800-\udfff]', '\ufffd', text)
+
+
 def main():
     parser = argparse.ArgumentParser(
         description="Convert a Copilot chat log JSON file to markdown format",
@@ -1009,15 +1020,19 @@ Examples:
     args = parser.parse_args()
     
     try:
-        # Read the JSON file
-        with open(args.input_file, 'r', encoding='utf-8') as f:
-            chat_data = json.load(f)
+        # Read the JSON file, allowing surrogates during decode
+        with open(args.input_file, 'r', encoding='utf-8', errors='surrogatepass') as f:
+            raw_text = f.read()
+
+        # Sanitize any lone surrogates before JSON parsing
+        raw_text = sanitize_surrogates(raw_text)
+        chat_data = json.loads(raw_text)
         
-        # Convert to markdown
-        markdown_content = parse_chat_log(chat_data)
+        # Convert to markdown and sanitize any surrogates that survived
+        markdown_content = sanitize_surrogates(parse_chat_log(chat_data))
         
-        # Write the markdown file
-        with open(args.output_file, 'w', encoding='utf-8') as f:
+        # Write the markdown file with replace fallback for safety
+        with open(args.output_file, 'w', encoding='utf-8', errors='replace') as f:
             f.write(markdown_content)
         
         print(f"Successfully converted {args.input_file} to {args.output_file}")

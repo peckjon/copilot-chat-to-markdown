@@ -1,0 +1,36 @@
+{
+  "requesterUsername": "TestUser",
+  "responderUsername": "GitHub Copilot",
+  "requests": [
+    {
+      "message": {
+        "text": "Show me some braille art with a surrogate character: \udeaa here"
+      },
+      "response": [
+        {
+          "value": "Here is the art you requested with special chars: \udeaa\udead done!"
+        }
+      ],
+      "result": {
+        "timings": {
+          "totalElapsed": 1234
+        }
+      }
+    },
+    {
+      "message": {
+        "text": "Thanks, that looks great!"
+      },
+      "response": [
+        {
+          "value": "You're welcome! Let me know if you need anything else."
+        }
+      ],
+      "result": {
+        "timings": {
+          "totalElapsed": 567
+        }
+      }
+    }
+  ]
+}
