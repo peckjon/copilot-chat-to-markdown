@@ -981,6 +981,11 @@ def parse_chat_log(chat_data: Dict[str, Any]) -> str:
                 model_info = ' • '.join(model_info_parts)
                 metadata_lines.append(f"> <br>*Model: {model_info}*")
         
+        # Add Copilot credits consumed by this request
+        copilot_credits = request.get('copilotCredits')
+        if isinstance(copilot_credits, (int, float)):
+            metadata_lines.append(f"> <br>*Copilot credits: {copilot_credits:.2f}*")
+        
         # Add all metadata lines
         if metadata_lines:
             for line in metadata_lines:
